@@ -1,0 +1,23 @@
+@font-face {
+  font-family: 'Test Tiempos Text';
+  src: url('https://fonts.cdnfonts.com/s/19543/TestTiemposText-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Styrene B LC';
+  src: url('https://fonts.cdnfonts.com/s/93661/StyreneB-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Styrene B LC';
+  src: url('https://fonts.cdnfonts.com/s/93661/StyreneB-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
