@@ -18,6 +18,8 @@ import {
   SelectValue,
 } from "./ui/select";
 import { useProjectStore, type EvaluationMethod, type Platform, type ProjectStatus, type Project } from "../store/useProjectStore";
+import { useAuthStore } from "../store/useAuthStore";
+import { toast } from "sonner";
 
 interface EditProjectDialogProps {
   open: boolean;
@@ -27,6 +29,8 @@ interface EditProjectDialogProps {
 
 export function EditProjectDialog({ open, onOpenChange, project }: EditProjectDialogProps) {
   const updateProject = useProjectStore((state) => state.updateProject);
+  const syncProjects = useProjectStore((state) => state.syncProjects);
+  const accessToken = useAuthStore((state) => state.accessToken);
   const [formData, setFormData] = useState({
     name: project.name,
     app: project.app,
@@ -52,7 +56,7 @@ export function EditProjectDialog({ open, onOpenChange, project }: EditProjectDi
     });
   }, [project]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name || !formData.app || !formData.evaluator || !formData.date || 
@@ -61,6 +65,13 @@ export function EditProjectDialog({ open, onOpenChange, project }: EditProjectDi
     }
 
     updateProject(project.id, formData);
+    
+    // Sync with backend
+    if (accessToken) {
+      await syncProjects(accessToken);
+      toast.success("Project updated and synced!");
+    }
+    
     onOpenChange(false);
   };
 

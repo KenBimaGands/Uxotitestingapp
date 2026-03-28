@@ -4,12 +4,17 @@ import { Projects } from "./pages/Projects";
 import { ProjectDetail } from "./pages/ProjectDetail";
 import { Evaluation } from "./pages/Evaluation";
 import { Login } from "./pages/Login";
+import { Signup } from "./pages/Signup";
 import { RootLayout } from "./layouts/RootLayout";
 
 export const router = createBrowserRouter([
   {
     path: "/login",
     Component: Login,
+  },
+  {
+    path: "/signup",
+    Component: Signup,
   },
   {
     path: "/",

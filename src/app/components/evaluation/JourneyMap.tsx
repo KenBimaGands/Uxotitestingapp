@@ -56,15 +56,15 @@ export function JourneyMap({ projectId, method, steps, onStepsChange }: JourneyM
 
   return (
     <div className="space-y-4">
-      <Card className="p-6 bg-card border-border">
-        <div className="flex items-center justify-between mb-4">
+      <Card className="p-4 sm:p-5 lg:p-6 bg-card border-border">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4">
           <div>
-            <h2>User Journey Map</h2>
-            <p className="text-muted-foreground mt-1">
+            <h2 className="text-lg sm:text-xl lg:text-2xl">User Journey Map</h2>
+            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
               Document the user flow and interactions
             </p>
           </div>
-          <Button onClick={addStep} size="sm">
+          <Button onClick={addStep} size="sm" className="w-full sm:w-auto">
             <Plus size={16} className="mr-2" />
             Add Step
           </Button>
@@ -72,32 +72,34 @@ export function JourneyMap({ projectId, method, steps, onStepsChange }: JourneyM
 
         <div className="space-y-4">
           {steps.map((step, index) => (
-            <Card key={step.id} className="p-4 bg-input-background border-border">
-              <div className="flex items-start gap-3">
-                <div className="mt-2 text-muted-foreground cursor-move">
+            <Card key={step.id} className="p-3 sm:p-4 bg-input-background border-border">
+              <div className="flex items-start gap-2 sm:gap-3">
+                <div className="mt-2 text-muted-foreground cursor-move hidden sm:block">
                   <GripVertical size={20} />
                 </div>
                 <div className="flex-1 space-y-3">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <Input
                       value={step.name}
                       onChange={(e) => updateStep(step.id, "name", e.target.value)}
                       placeholder="Step name"
-                      className="max-w-xs"
+                      className="w-full sm:max-w-xs"
                     />
                     {steps.length > 1 && (
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => removeStep(step.id)}
+                        className="w-full sm:w-auto"
                       >
-                        <Trash2 size={16} className="text-destructive" />
+                        <Trash2 size={16} className="text-destructive mr-2 sm:mr-0" />
+                        <span className="sm:hidden">Remove Step</span>
                       </Button>
                     )}
                   </div>
 
                   <div>
-                    <label className="block mb-2">Description</label>
+                    <label className="block mb-2 text-sm">Description</label>
                     <Textarea
                       value={step.description}
                       onChange={(e) =>
@@ -108,9 +110,9 @@ export function JourneyMap({ projectId, method, steps, onStepsChange }: JourneyM
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <label className="block mb-2">User Action</label>
+                      <label className="block mb-2 text-sm">User Action</label>
                       <Textarea
                         value={step.userAction}
                         onChange={(e) =>
@@ -121,7 +123,7 @@ export function JourneyMap({ projectId, method, steps, onStepsChange }: JourneyM
                       />
                     </div>
                     <div>
-                      <label className="block mb-2">System Response</label>
+                      <label className="block mb-2 text-sm">System Response</label>
                       <Textarea
                         value={step.systemResponse}
                         onChange={(e) =>

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { projectId } from "/utils/supabase/info";
 
 export type EvaluationMethod = "Heuristic" | "7 Dimensions";
 export type Platform = "Mobile" | "Web" | "Desktop" | "Cross-platform";
@@ -55,80 +56,72 @@ export interface Project {
 
 interface ProjectStore {
   projects: Project[];
+  isLoading: boolean;
+  isSyncing: boolean;
   addProject: (project: Omit<Project, "id" | "lastModified">) => void;
   updateProject: (id: string, updates: Partial<Project>) => void;
   deleteProject: (id: string) => void;
   saveEvaluationData: (projectId: string, data: EvaluationData) => void;
+  loadProjects: (accessToken: string) => Promise<void>;
+  syncProjects: (accessToken: string) => Promise<void>;
 }
 
-const mockProjects: Project[] = [
-  {
-    id: "1",
-    name: "E-commerce Checkout Flow",
-    app: "ShopEase Mobile",
-    evaluator: "Sarah Chen",
-    date: "2026-03-15",
-    platform: "Mobile",
-    scope: "Checkout and payment flow",
-    status: "Completed",
-    method: "Heuristic",
-    lastModified: "2026-03-20",
-  },
-  {
-    id: "2",
-    name: "Banking App Onboarding",
-    app: "SecureBank",
-    evaluator: "Michael Torres",
-    date: "2026-03-10",
-    platform: "Mobile",
-    scope: "User registration and KYC",
-    status: "In Progress",
-    method: "7 Dimensions",
-    lastModified: "2026-03-25",
-  },
-  {
-    id: "3",
-    name: "Dashboard Navigation Audit",
-    app: "Analytics Pro",
-    evaluator: "Emma Wilson",
-    date: "2026-03-05",
-    platform: "Web",
-    scope: "Main dashboard and navigation",
-    status: "Completed",
-    method: "Heuristic",
-    lastModified: "2026-03-18",
-  },
-  {
-    id: "4",
-    name: "Desktop App Accessibility",
-    app: "DesignTools Suite",
-    evaluator: "James Park",
-    date: "2026-02-28",
-    platform: "Desktop",
-    scope: "Accessibility compliance review",
-    status: "Completed",
-    method: "7 Dimensions",
-    lastModified: "2026-03-12",
-  },
-  {
-    id: "5",
-    name: "Cross-Platform Consistency",
-    app: "CloudDrive",
-    evaluator: "Lisa Anderson",
-    date: "2026-03-22",
-    platform: "Cross-platform",
-    scope: "UI consistency across devices",
-    status: "In Progress",
-    method: "Heuristic",
-    lastModified: "2026-03-27",
-  },
-];
+const API_BASE = `https://${projectId}.supabase.co/functions/v1/make-server-aba765bd`;
 
 export const useProjectStore = create<ProjectStore>()(
   persist(
-    (set) => ({
-      projects: mockProjects,
-      addProject: (project) =>
+    (set, get) => ({
+      projects: [],
+      isLoading: false,
+      isSyncing: false,
+
+      loadProjects: async (accessToken: string) => {
+        set({ isLoading: true });
+        try {
+          const response = await fetch(`${API_BASE}/projects`, {
+            headers: {
+              "Authorization": `Bearer ${accessToken}`,
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to load projects");
+          }
+
+          const data = await response.json();
+          set({ projects: data.projects || [], isLoading: false });
+        } catch (error) {
+          console.error("Error loading projects:", error);
+          set({ isLoading: false });
+        }
+      },
+
+      syncProjects: async (accessToken: string) => {
+        set({ isSyncing: true });
+        try {
+          const { projects } = get();
+          
+          const response = await fetch(`${API_BASE}/projects`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({ projects }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to sync projects");
+          }
+
+          set({ isSyncing: false });
+        } catch (error) {
+          console.error("Error syncing projects:", error);
+          set({ isSyncing: false });
+        }
+      },
+
+      addProject: (project) => {
         set((state) => ({
           projects: [
             ...state.projects,
@@ -138,7 +131,9 @@ export const useProjectStore = create<ProjectStore>()(
               lastModified: new Date().toISOString().split("T")[0],
             },
           ],
-        })),
+        }));
+      },
+
       updateProject: (id, updates) =>
         set((state) => ({
           projects: state.projects.map((p) =>
@@ -147,10 +142,12 @@ export const useProjectStore = create<ProjectStore>()(
               : p
           ),
         })),
+
       deleteProject: (id) =>
         set((state) => ({
           projects: state.projects.filter((p) => p.id !== id),
         })),
+
       saveEvaluationData: (projectId, data) =>
         set((state) => ({
           projects: state.projects.map((p) =>

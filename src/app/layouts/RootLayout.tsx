@@ -7,7 +7,7 @@ export function RootLayout() {
     <ProtectedRoute>
       <div className="flex h-screen w-full bg-background">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto w-full">
           <Outlet />
         </main>
       </div>

@@ -32,22 +32,22 @@ export function Projects() {
   });
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-4 lg:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1>Projects</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl">Projects</h1>
+          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
             Manage all your UX evaluation projects
           </p>
         </div>
-        <Button onClick={() => setIsDialogOpen(true)}>
+        <Button onClick={() => setIsDialogOpen(true)} className="w-full sm:w-auto">
           <Plus size={16} className="mr-2" />
           New Project
         </Button>
       </div>
 
       <Card className="p-4 bg-card border-border">
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex flex-col md:flex-row gap-3 lg:gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
             <Input
@@ -57,9 +57,9 @@ export function Projects() {
               className="pl-10"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-col sm:flex-row">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-full sm:w-[150px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -69,7 +69,7 @@ export function Projects() {
               </SelectContent>
             </Select>
             <Select value={methodFilter} onValueChange={setMethodFilter}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-full sm:w-[150px]">
                 <SelectValue placeholder="Method" />
               </SelectTrigger>
               <SelectContent>
@@ -82,13 +82,13 @@ export function Projects() {
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredProjects.map((project) => (
           <Link key={project.id} to={`/projects/${project.id}`}>
-            <Card className="p-6 bg-card border-border hover:border-primary/50 transition-all cursor-pointer h-full">
-              <div className="space-y-4">
-                <div className="pb-4 border-b border-border">
-                  <h2>{project.name}</h2>
+            <Card className="p-5 lg:p-6 bg-card border-border hover:border-primary/50 transition-all cursor-pointer h-full">
+              <div className="space-y-3 lg:space-y-4">
+                <div className="pb-3 lg:pb-4 border-b border-border">
+                  <h2 className="text-lg lg:text-xl">{project.name}</h2>
                   <p className="text-muted-foreground mt-1 text-sm">{project.app}</p>
                 </div>
                 
@@ -129,7 +129,7 @@ export function Projects() {
       </div>
 
       {filteredProjects.length === 0 && (
-        <Card className="p-12 bg-card border-border">
+        <Card className="p-8 lg:p-12 bg-card border-border">
           <div className="text-center text-muted-foreground">
             <p>No projects found</p>
             <p className="caption mt-1">Try adjusting your filters or create a new project</p>

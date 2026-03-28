@@ -18,6 +18,8 @@ import {
   SelectValue,
 } from "./ui/select";
 import { useProjectStore, type EvaluationMethod, type Platform, type ProjectStatus } from "../store/useProjectStore";
+import { useAuthStore } from "../store/useAuthStore";
+import { toast } from "sonner";
 
 interface NewProjectDialogProps {
   open: boolean;
@@ -26,6 +28,8 @@ interface NewProjectDialogProps {
 
 export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) {
   const addProject = useProjectStore((state) => state.addProject);
+  const syncProjects = useProjectStore((state) => state.syncProjects);
+  const accessToken = useAuthStore((state) => state.accessToken);
   const [formData, setFormData] = useState({
     name: "",
     app: "",
@@ -37,7 +41,7 @@ export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) 
     method: "" as EvaluationMethod,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name || !formData.app || !formData.evaluator || !formData.date || 
@@ -46,6 +50,12 @@ export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) 
     }
 
     addProject(formData);
+    
+    // Sync with backend
+    if (accessToken) {
+      await syncProjects(accessToken);
+      toast.success("Project created and synced!");
+    }
     
     // Reset form
     setFormData({
@@ -64,15 +74,15 @@ export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-card border-border">
+      <DialogContent className="max-w-2xl bg-card border-border max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Project</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">Create New Project</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Project Name</Label>
+              <Label htmlFor="name" className="text-sm">Project Name</Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -83,7 +93,7 @@ export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="app">Application Name</Label>
+              <Label htmlFor="app" className="text-sm">Application Name</Label>
               <Input
                 id="app"
                 value={formData.app}
@@ -94,9 +104,9 @@ export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) 
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="evaluator">Evaluator</Label>
+              <Label htmlFor="evaluator" className="text-sm">Evaluator</Label>
               <Input
                 id="evaluator"
                 value={formData.evaluator}
@@ -107,7 +117,7 @@ export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="date">Evaluation Date</Label>
+              <Label htmlFor="date" className="text-sm">Evaluation Date</Label>
               <Input
                 id="date"
                 type="date"
@@ -118,9 +128,9 @@ export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) 
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="platform">Platform</Label>
+              <Label htmlFor="platform" className="text-sm">Platform</Label>
               <Select
                 value={formData.platform}
                 onValueChange={(value) => setFormData({ ...formData, platform: value as Platform })}
@@ -139,7 +149,7 @@ export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="method">Evaluation Method</Label>
+              <Label htmlFor="method" className="text-sm">Evaluation Method</Label>
               <Select
                 value={formData.method}
                 onValueChange={(value) => setFormData({ ...formData, method: value as EvaluationMethod })}
@@ -156,7 +166,7 @@ export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
+              <Label htmlFor="status" className="text-sm">Status</Label>
               <Select
                 value={formData.status}
                 onValueChange={(value) => setFormData({ ...formData, status: value as ProjectStatus })}
@@ -174,7 +184,7 @@ export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) 
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="scope">Scope</Label>
+            <Label htmlFor="scope" className="text-sm">Scope</Label>
             <Textarea
               id="scope"
               value={formData.scope}
@@ -185,11 +195,11 @@ export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) 
             />
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" className="w-full sm:w-auto">
               Create Project
             </Button>
           </DialogFooter>

@@ -4,33 +4,52 @@ import { useAuthStore } from "../store/useAuthStore";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { BarChart3, AlertCircle } from "lucide-react";
+import { BarChart3, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
-export function Login() {
+export function Signup() {
   const navigate = useNavigate();
-  const login = useAuthStore((state) => state.login);
+  const signup = useAuthStore((state) => state.signup);
   
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    // Validation
+    if (!name || !email || !password || !confirmPassword) {
+      setError("All fields are required");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const success = await login(email, password);
+      const result = await signup(email, password, name);
       
-      if (success) {
-        toast.success("Login successful!", {
+      if (result.success) {
+        toast.success("Account created successfully!", {
           description: "Welcome to UXOTI Testing",
         });
         navigate("/");
       } else {
-        setError("Invalid email or password");
+        setError(result.error || "Signup failed");
       }
     } catch (err) {
       setError("An error occurred. Please try again.");
@@ -53,13 +72,13 @@ export function Login() {
           </p>
         </div>
 
-        {/* Login Card */}
+        {/* Signup Card */}
         <Card className="p-5 sm:p-6 bg-card border-border">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <h2 className="text-xl sm:text-2xl">Sign In</h2>
+              <h2 className="text-xl sm:text-2xl">Create Account</h2>
               <p className="text-muted-foreground text-sm sm:text-base">
-                Enter your credentials to access your dashboard
+                Sign up to start evaluating UX projects
               </p>
             </div>
 
@@ -71,6 +90,21 @@ export function Login() {
             )}
 
             <div className="space-y-4">
+              <div>
+                <label htmlFor="name" className="block mb-2 text-sm sm:text-base">
+                  Full Name
+                </label>
+                <Input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="John Doe"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
               <div>
                 <label htmlFor="email" className="block mb-2 text-sm sm:text-base">
                   Email
@@ -95,9 +129,26 @@ export function Login() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
+                  placeholder="At least 6 characters"
                   required
                   disabled={isLoading}
+                  minLength={6}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="confirmPassword" className="block mb-2 text-sm sm:text-base">
+                  Confirm Password
+                </label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repeat your password"
+                  required
+                  disabled={isLoading}
+                  minLength={6}
                 />
               </div>
             </div>
@@ -107,22 +158,19 @@ export function Login() {
               className="w-full"
               disabled={isLoading}
             >
-              {isLoading ? "Signing in..." : "Sign In"}
+              {isLoading ? "Creating account..." : "Create Account"}
             </Button>
 
             <div className="text-center">
               <p className="text-muted-foreground text-sm">
-                Don't have an account?{" "}
-                <Link to="/signup" className="text-accent hover:text-accent/80 transition-colors">
-                  Sign up
+                Already have an account?{" "}
+                <Link to="/login" className="text-accent hover:text-accent/80 transition-colors">
+                  Sign in
                 </Link>
               </p>
             </div>
           </form>
         </Card>
-
-        {/* Demo Credentials */}
-        
       </div>
     </div>
   );
