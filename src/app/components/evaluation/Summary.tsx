@@ -35,7 +35,7 @@ export function Summary({ projectId, project }: SummaryProps) {
   return (
     <div className="space-y-4">
       <Card className="p-6 bg-card border-border">
-        <h2 className="mb-6">Evaluation Summary</h2>
+        <h2 style={{ fontFamily: 'Crimson Text, serif', fontSize: '24px' }}>Evaluation Summary</h2>
 
         <div className="space-y-6">
           <div>
@@ -152,7 +152,7 @@ export function Summary({ projectId, project }: SummaryProps) {
           )}
 
           <div>
-            <h3 className="mb-4">Report Preview</h3>
+            <h3 className = "mb-2">Report Preview</h3>
             <Card className="p-6 bg-input-background border-border">
               {hasData ? (
                 <div className="space-y-4">

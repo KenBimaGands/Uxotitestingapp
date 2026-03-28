@@ -47,7 +47,7 @@ export function Login() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-primary mb-4">
             <BarChart3 size={32} className="text-primary-foreground" />
           </div>
-          <h1>UXOTI Testing</h1>
+          <h1 className="text-[30px] font-[Crimson_Text]">UXOTI Testing</h1>
           <p className="text-muted-foreground">
             UX Evaluation Platform
           </p>
@@ -113,21 +113,7 @@ export function Login() {
         </Card>
 
         {/* Demo Credentials */}
-        <Card className="p-4 bg-input-background border-border">
-          <h4 className="mb-3">Demo Credentials</h4>
-          <div className="space-y-2 caption text-muted-foreground">
-            <div>
-              <p className="text-foreground">Administrator</p>
-              <p>Email: admin@uxoti.com</p>
-              <p>Password: admin123</p>
-            </div>
-            <div className="mt-3 pt-3 border-t border-border">
-              <p className="text-foreground">Evaluator</p>
-              <p>Email: evaluator@uxoti.com</p>
-              <p>Password: eval123</p>
-            </div>
-          </div>
-        </Card>
+        
       </div>
     </div>
   );

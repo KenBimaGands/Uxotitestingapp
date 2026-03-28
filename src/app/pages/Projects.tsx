@@ -87,25 +87,25 @@ export function Projects() {
           <Link key={project.id} to={`/projects/${project.id}`}>
             <Card className="p-6 bg-card border-border hover:border-primary/50 transition-all cursor-pointer h-full">
               <div className="space-y-4">
-                <div>
-                  <h3>{project.name}</h3>
-                  <p className="text-muted-foreground mt-1">{project.app}</p>
+                <div className="pb-4 border-b border-border">
+                  <h2>{project.name}</h2>
+                  <p className="text-muted-foreground mt-1 text-sm">{project.app}</p>
                 </div>
                 
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between caption text-muted-foreground">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>Evaluator</span>
                     <span className="text-foreground">{project.evaluator}</span>
                   </div>
-                  <div className="flex items-center justify-between caption text-muted-foreground">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>Date</span>
                     <span className="text-foreground">{project.date}</span>
                   </div>
-                  <div className="flex items-center justify-between caption text-muted-foreground">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>Platform</span>
                     <span className="text-foreground">{project.platform}</span>
                   </div>
-                  <div className="flex items-center justify-between caption text-muted-foreground">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>Method</span>
                     <span className="text-foreground">{project.method}</span>
                   </div>
@@ -118,7 +118,7 @@ export function Projects() {
                 </div>
 
                 <div className="pt-2 border-t border-border">
-                  <p className="caption text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     Last modified: {project.lastModified}
                   </p>
                 </div>

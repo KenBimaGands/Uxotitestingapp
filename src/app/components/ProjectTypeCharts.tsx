@@ -46,6 +46,11 @@ export function ProjectTypeCharts() {
     },
   ], [projects]);
 
+  const filteredPlatformData = useMemo(
+    () => platformData.filter((item) => item.count > 0),
+    [platformData]
+  );
+
   return (
     <>
       <Card className="p-6 bg-card border-border">
@@ -84,23 +89,22 @@ export function ProjectTypeCharts() {
 
       <Card className="p-6 bg-card border-border">
         <h3 className="mb-4">Projects by Platform</h3>
-        {platformData.some((item) => item.count > 0) ? (
+        {filteredPlatformData.length > 0 ? (
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
-                data={platformData.filter((item) => item.count > 0)}
+                data={filteredPlatformData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
                 label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 outerRadius={80}
                 dataKey="count"
-                nameKey="name"
                 isAnimationActive={false}
                 style={{ fontSize: '11px', fontFamily: 'var(--text-caption-family)' }}
               >
-                {platformData.filter((item) => item.count > 0).map((entry) => (
-                  <Cell key={`cell-${entry.id}`} fill={entry.color} />
+                {filteredPlatformData.map((entry, index) => (
+                  <Cell key={`cell-${entry.id}-${index}`} fill={entry.color} />
                 ))}
               </Pie>
               <Tooltip

@@ -34,8 +34,8 @@ export function Sidebar() {
   return (
     <aside className="w-64 border-r border-border bg-sidebar flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
-        <h1 className="text-foreground">UXOTI Testing</h1>
-        <p className="caption text-sidebar-foreground mt-1">Evaluate smarter. Report faster.</p>
+        <h1 className="text-foreground font-[Crimson_Text]">UXOTI Testing</h1>
+        <p className="caption text-sidebar-foreground mt-1 text-[12px]">Evaluate smarter. Report faster.</p>
       </div>
       
       <nav className="flex-1 p-4">

@@ -51,7 +51,7 @@ export function ProjectDetail() {
             <ArrowLeft size={16} />
             <span className="caption">Back to Projects</span>
           </Link>
-          <h1>{project.name}</h1>
+          <h1 style={{ fontFamily: 'Crimson Text, serif', fontSize: '24px' }}>{project.name}</h1>
           <p className="text-muted-foreground">{project.app}</p>
         </div>
         <div className="flex gap-2">
@@ -105,7 +105,7 @@ export function ProjectDetail() {
       </div>
 
       <Card className="p-6 bg-card border-border">
-        <h2 className="mb-4">Project Details</h2>
+        <h2 className="pb-2 border-b border-border">Project Details</h2>
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -128,7 +128,7 @@ export function ProjectDetail() {
           </div>
 
           <div className="pt-4 border-t border-border">
-            <p className="caption text-muted-foreground">
+            <p className="caption text-muted-foreground text-[11px]">
               Last modified: {project.lastModified}
             </p>
           </div>
