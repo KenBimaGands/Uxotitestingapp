@@ -77,6 +77,7 @@ export function ProjectTypeCharts() {
               }}
             />
             <Bar 
+              key="evaluation-method-bar"
               dataKey="count" 
               fill="var(--chart-2)" 
               fillOpacity={0.6}
@@ -100,11 +101,12 @@ export function ProjectTypeCharts() {
                 label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 outerRadius={80}
                 dataKey="count"
+                nameKey="name"
                 isAnimationActive={false}
                 style={{ fontSize: '11px', fontFamily: 'var(--text-caption-family)' }}
               >
-                {filteredPlatformData.map((entry, index) => (
-                  <Cell key={`cell-${entry.id}-${index}`} fill={entry.color} />
+                {filteredPlatformData.map((entry) => (
+                  <Cell key={entry.id} fill={entry.color} />
                 ))}
               </Pie>
               <Tooltip

@@ -6,6 +6,9 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { BarChart3, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { projectId, publicAnonKey } from "/utils/supabase/info";
+
+const API_BASE = `https://${projectId}.supabase.co/functions/v1/make-server-aba765bd`;
 
 export function Signup() {
   const navigate = useNavigate();
@@ -41,7 +44,13 @@ export function Signup() {
     setIsLoading(true);
 
     try {
+      console.log("=== SIGNUP ATTEMPT ===");
+      console.log("Email:", email);
+      console.log("Name:", name);
+      console.log("API Base:", API_BASE);
+      
       const result = await signup(email, password, name);
+      console.log("=== SIGNUP RESULT ===", result);
       
       if (result.success) {
         toast.success("Account created successfully!", {
@@ -49,10 +58,14 @@ export function Signup() {
         });
         navigate("/");
       } else {
-        setError(result.error || "Signup failed");
+        console.error("=== SIGNUP FAILED ===");
+        console.error("Error:", result.error);
+        setError(result.error || "Signup failed. Please try again.");
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      console.error("=== SIGNUP EXCEPTION ===");
+      console.error("Exception:", err);
+      setError(`Error: ${err instanceof Error ? err.message : "An error occurred. Please check the browser console for details."}`);
     } finally {
       setIsLoading(false);
     }
@@ -83,9 +96,19 @@ export function Signup() {
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                <AlertCircle size={16} className="text-destructive flex-shrink-0" />
-                <p className="text-sm text-destructive">{error}</p>
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                <AlertCircle size={16} className="text-destructive flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm text-destructive">{error}</p>
+                  {error.includes("already been registered") && (
+                    <Link 
+                      to="/login" 
+                      className="text-sm text-accent hover:text-accent/80 transition-colors underline mt-1 inline-block"
+                    >
+                      Go to login instead
+                    </Link>
+                  )}
+                </div>
               </div>
             )}
 

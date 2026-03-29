@@ -14,16 +14,17 @@ export function ProjectDetail() {
   const project = useProjectStore((state) => state.projects.find((p) => p.id === id));
   const deleteProject = useProjectStore((state) => state.deleteProject);
   const syncProjects = useProjectStore((state) => state.syncProjects);
-  const accessToken = useAuthStore((state) => state.accessToken);
+  const getValidToken = useAuthStore((state) => state.getValidToken);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const handleDelete = async () => {
     if (window.confirm(`Are you sure you want to delete "${project?.name}"? This action cannot be undone.`)) {
       deleteProject(id!);
       
-      // Sync with backend
-      if (accessToken) {
-        await syncProjects(accessToken);
+      // Sync with backend using fresh token
+      const token = await getValidToken();
+      if (token) {
+        await syncProjects(token);
       }
       
       navigate("/projects");

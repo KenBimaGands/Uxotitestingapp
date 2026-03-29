@@ -29,7 +29,7 @@ interface NewProjectDialogProps {
 export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) {
   const addProject = useProjectStore((state) => state.addProject);
   const syncProjects = useProjectStore((state) => state.syncProjects);
-  const accessToken = useAuthStore((state) => state.accessToken);
+  const getValidToken = useAuthStore((state) => state.getValidToken);
   const [formData, setFormData] = useState({
     name: "",
     app: "",
@@ -51,9 +51,10 @@ export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) 
 
     addProject(formData);
     
-    // Sync with backend
-    if (accessToken) {
-      await syncProjects(accessToken);
+    // Sync with backend using fresh token
+    const token = await getValidToken();
+    if (token) {
+      await syncProjects(token);
       toast.success("Project created and synced!");
     }
     

@@ -30,7 +30,7 @@ interface EditProjectDialogProps {
 export function EditProjectDialog({ open, onOpenChange, project }: EditProjectDialogProps) {
   const updateProject = useProjectStore((state) => state.updateProject);
   const syncProjects = useProjectStore((state) => state.syncProjects);
-  const accessToken = useAuthStore((state) => state.accessToken);
+  const getValidToken = useAuthStore((state) => state.getValidToken);
   const [formData, setFormData] = useState({
     name: project.name,
     app: project.app,
@@ -66,9 +66,10 @@ export function EditProjectDialog({ open, onOpenChange, project }: EditProjectDi
 
     updateProject(project.id, formData);
     
-    // Sync with backend
-    if (accessToken) {
-      await syncProjects(accessToken);
+    // Sync with backend using fresh token
+    const token = await getValidToken();
+    if (token) {
+      await syncProjects(token);
       toast.success("Project updated and synced!");
     }
     

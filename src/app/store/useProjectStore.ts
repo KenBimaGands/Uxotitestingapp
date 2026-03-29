@@ -78,21 +78,41 @@ export const useProjectStore = create<ProjectStore>()(
       loadProjects: async (accessToken: string) => {
         set({ isLoading: true });
         try {
+          console.log("Loading projects from server...");
           const response = await fetch(`${API_BASE}/projects`, {
             headers: {
               "Authorization": `Bearer ${accessToken}`,
             },
           });
 
+          console.log("Load projects response status:", response.status);
+
           if (!response.ok) {
-            throw new Error("Failed to load projects");
+            const errorData = await response.json().catch(() => ({}));
+            console.error("Failed to load projects:", errorData);
+            
+            // Check if it's an auth error
+            if (response.status === 401) {
+              set({ projects: [], isLoading: false });
+              throw new Error("Unauthorized - Session expired");
+            }
+            
+            throw new Error(errorData.error || "Failed to load projects");
           }
 
           const data = await response.json();
+          console.log("Loaded projects:", data.projects);
           set({ projects: data.projects || [], isLoading: false });
         } catch (error) {
           console.error("Error loading projects:", error);
-          set({ isLoading: false });
+          set({ projects: [], isLoading: false });
+          
+          // Re-throw auth errors so Dashboard can handle them
+          if (error instanceof Error && (error.message.includes("401") || error.message.includes("Unauthorized") || error.message.includes("Session expired"))) {
+            throw error;
+          }
+          
+          // For other errors, don't throw (just log) - could be network issues
         }
       },
 

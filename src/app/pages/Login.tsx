@@ -22,18 +22,22 @@ export function Login() {
     setIsLoading(true);
 
     try {
+      console.log("Login page: Attempting login for:", email);
       const success = await login(email, password);
+      console.log("Login page: Login result:", success);
       
       if (success) {
         toast.success("Login successful!", {
-          description: "Welcome to UXOTI Testing",
+          description: "Welcome back to UXOTI Testing",
         });
         navigate("/");
       } else {
-        setError("Invalid email or password");
+        console.error("Login page: Login failed - no success flag returned");
+        setError("Invalid email or password. Please check your credentials and try again.");
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      console.error("Login page: Login exception:", err);
+      setError(`Login failed: ${err instanceof Error ? err.message : "An error occurred. Please try again."}`);
     } finally {
       setIsLoading(false);
     }
@@ -64,9 +68,16 @@ export function Login() {
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                <AlertCircle size={16} className="text-destructive flex-shrink-0" />
-                <p className="text-sm text-destructive">{error}</p>
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                <AlertCircle size={16} className="text-destructive flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm text-destructive">{error}</p>
+                  {error.includes("Invalid email or password") && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Need an account? <Link to="/signup" className="text-accent hover:text-accent/80 underline">Sign up here</Link>
+                    </p>
+                  )}
+                </div>
               </div>
             )}
 

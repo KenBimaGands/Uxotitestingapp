@@ -19,7 +19,7 @@ export function Evaluation() {
   const project = useProjectStore((state) => state.projects.find((p) => p.id === id));
   const saveEvaluationData = useProjectStore((state) => state.saveEvaluationData);
   const syncProjects = useProjectStore((state) => state.syncProjects);
-  const accessToken = useAuthStore((state) => state.accessToken);
+  const getValidToken = useAuthStore((state) => state.getValidToken);
 
   const [journeySteps, setJourneySteps] = useState<JourneyStep[]>([]);
   const [findings, setFindings] = useState<Finding[]>([]);
@@ -43,9 +43,10 @@ export function Evaluation() {
       scores,
     });
 
-    // Sync with backend
-    if (accessToken) {
-      await syncProjects(accessToken);
+    // Sync with backend using fresh token
+    const token = await getValidToken();
+    if (token) {
+      await syncProjects(token);
     }
 
     toast.success("Progress saved successfully!", {
