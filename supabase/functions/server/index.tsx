@@ -6,22 +6,15 @@ import * as kv from "./kv_store.tsx";
 const app = new Hono();
 
 // Initialize Supabase clients
-// Service role client for admin operations (signup)
+// Service role client for admin operations and token verification
 const supabaseAdmin = createClient(
   Deno.env.get('SUPABASE_URL') ?? '',
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
 );
 
-// Anon client for token validation (matches frontend context)
-const supabaseAnon = createClient(
-  Deno.env.get('SUPABASE_URL') ?? '',
-  Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-);
-
 console.log("=== SERVER INITIALIZATION ===");
 console.log("Supabase URL:", Deno.env.get('SUPABASE_URL')?.substring(0, 30) + "...");
 console.log("Service Role Key present:", !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
-console.log("Anon Key present:", !!Deno.env.get('SUPABASE_ANON_KEY'));
 
 // Enable logger
 app.use('*', logger(console.log));
@@ -41,6 +34,17 @@ app.use(
 // Health check endpoint
 app.get("/make-server-aba765bd/health", (c) => {
   return c.json({ status: "ok" });
+});
+
+// Debug endpoint to check environment variables
+app.get("/make-server-aba765bd/debug-env", (c) => {
+  return c.json({
+    hasServiceRole: !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
+    hasAnonKey: !!Deno.env.get('SUPABASE_ANON_KEY'),
+    hasUrl: !!Deno.env.get('SUPABASE_URL'),
+    serverVersion: "2024-03-29-admin-auth-fix",
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // Signup endpoint
@@ -131,21 +135,12 @@ const requireAuth = async (c: any, next: any) => {
   console.log("Token length:", token.length);
   
   try {
-    console.log("Attempting to verify token with user-scoped client...");
+    console.log("Attempting to verify token with admin client...");
     
-    // Create a user-scoped client using the anon key + user JWT
-    const userSupabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      }
-    );
-    
-    // Verify the user's token (no argument needed - uses token from headers)
-    const { data, error } = await userSupabase.auth.getUser();
+    // Use admin client with explicit token - this is the recommended pattern for Edge Functions
+    // The service role key is automatically injected by Supabase, no need for SUPABASE_ANON_KEY
+    // See: https://supabase.com/docs/guides/functions/auth
+    const { data, error } = await supabaseAdmin.auth.getUser(token);
     
     if (error) {
       console.log("=== SERVER AUTH FAILED ===");
