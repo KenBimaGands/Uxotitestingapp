@@ -10,6 +10,14 @@ export default function App() {
   const clearAuth = useAuthStore((state) => state.clearAuth);
   
   useEffect(() => {
+    // Clean up corrupted localStorage from old persist middleware
+    // This is safe to run multiple times - only clears on first load if it exists
+    const oldAuthKey = localStorage.getItem('uxoti-auth');
+    if (oldAuthKey) {
+      console.log('=== APP: Cleaning up old auth storage ===');
+      localStorage.removeItem('uxoti-auth');
+    }
+    
     // Initialize auth on app load
     console.log('=== APP: Initializing ===');
     initializeAuth();

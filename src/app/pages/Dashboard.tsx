@@ -11,14 +11,16 @@ export function Dashboard() {
   const projects = useProjectStore((state) => state.projects);
   const loadProjects = useProjectStore((state) => state.loadProjects);
   const isLoading = useProjectStore((state) => state.isLoading);
-  const accessToken = useAuthStore((state) => state.accessToken);
+  const getValidToken = useAuthStore((state) => state.getValidToken);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const [hasLoadedProjects, setHasLoadedProjects] = useState(false);
+  const navigate = useNavigate();
 
   // Load projects from backend on mount
   useEffect(() => {
-    // If we don't have a token, don't attempt to load
-    if (!accessToken) {
-      console.log("=== DASHBOARD: No access token available ===");
+    // If user is not authenticated, don't attempt to load
+    if (!isAuthenticated) {
+      console.log("=== DASHBOARD: User not authenticated ===");
       return;
     }
 
@@ -27,20 +29,30 @@ export function Dashboard() {
       return;
     }
 
-    console.log("=== DASHBOARD: Loading projects with token ===");
-    console.log("Token (first 50):", accessToken.substring(0, 50));
+    console.log("=== DASHBOARD: Loading projects with valid token ===");
     setHasLoadedProjects(true);
     
-    loadProjects(accessToken).catch((error) => {
+    // Get a valid token (will refresh if needed)
+    getValidToken().then((token) => {
+      if (!token) {
+        console.error("=== DASHBOARD: Failed to get valid token ===");
+        toast.error("Session expired. Please log in again.");
+        navigate("/login");
+        return;
+      }
+      
+      console.log("Token (first 50):", token.substring(0, 50));
+      return loadProjects(token);
+    }).catch((error) => {
       console.error("=== DASHBOARD: Failed to load projects ===", error);
       toast.error("Failed to load projects. Please try refreshing the page.");
     });
-  }, [accessToken, hasLoadedProjects, loadProjects]);
+  }, [isAuthenticated, hasLoadedProjects, loadProjects, getValidToken, navigate]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8 lg:ml-0 ml-0">
       <div>
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl">Dashboard</h1>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-[Crimson_Text]">Dashboard</h1>
         <p className="text-muted-foreground mt-2 text-sm sm:text-base">
           Welcome back! Here's an overview of your UX evaluation projects.
         </p>

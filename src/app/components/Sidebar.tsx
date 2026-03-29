@@ -95,8 +95,8 @@ export function Sidebar() {
               <span>{user ? getInitials(user.name) : "U"}</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-foreground truncate text-sm">{user?.name || "User Account"}</p>
-              <p className="caption text-sidebar-foreground">{user?.role || "Role"}</p>
+              <p className="text-foreground truncate text-[14px]">{user?.name || "User Account"}</p>
+              <p className="caption text-sidebar-foreground text-[12px]">{user?.role || "Role"}</p>
             </div>
           </div>
           <Button

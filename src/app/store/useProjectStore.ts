@@ -58,12 +58,12 @@ interface ProjectStore {
   projects: Project[];
   isLoading: boolean;
   isSyncing: boolean;
-  addProject: (project: Omit<Project, "id" | "lastModified">) => void;
+  addProject: (project: Omit<Project, "id" | "lastModified">) => Project;
   updateProject: (id: string, updates: Partial<Project>) => void;
   deleteProject: (id: string) => void;
   saveEvaluationData: (projectId: string, data: EvaluationData) => void;
   loadProjects: (accessToken: string) => Promise<void>;
-  syncProjects: (accessToken: string) => Promise<void>;
+  syncProjects: (accessToken: string, overrideProjects?: Project[]) => Promise<void>;
 }
 
 const API_BASE = `https://${projectId}.supabase.co/functions/v1/make-server-aba765bd`;
@@ -122,12 +122,13 @@ export const useProjectStore = create<ProjectStore>()(
         }
       },
 
-      syncProjects: async (accessToken: string) => {
+      syncProjects: async (accessToken: string, overrideProjects?: Project[]) => {
         set({ isSyncing: true });
         try {
-          const { projects } = get();
+          const projects = overrideProjects ?? get().projects;
           
           console.log("Syncing projects to server...");
+          console.log("Project count:", projects.length);
           
           const response = await fetch(`${API_BASE}/projects`, {
             method: "POST",
@@ -170,16 +171,17 @@ export const useProjectStore = create<ProjectStore>()(
       },
 
       addProject: (project) => {
+        const newProject: Project = {
+          ...project,
+          id: Date.now().toString(),
+          lastModified: new Date().toISOString().split("T")[0],
+        };
+        
         set((state) => ({
-          projects: [
-            ...state.projects,
-            {
-              ...project,
-              id: Date.now().toString(),
-              lastModified: new Date().toISOString().split("T")[0],
-            },
-          ],
+          projects: [...state.projects, newProject],
         }));
+        
+        return newProject;
       },
 
       updateProject: (id, updates) =>

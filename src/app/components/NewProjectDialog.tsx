@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "./ui/dialog";
 import { Button } from "./ui/button";
@@ -49,13 +50,14 @@ export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) 
       return;
     }
 
-    addProject(formData);
+    const newProject = addProject(formData);
     
     // Sync with backend using fresh token
     try {
       const token = await getValidToken();
       if (token) {
-        await syncProjects(token);
+        const allProjects = useProjectStore.getState().projects;
+        await syncProjects(token, allProjects);
         toast.success("Project created and synced!");
       } else {
         toast.warning("Project created locally, but sync failed. You may need to log in again.");
@@ -85,6 +87,7 @@ export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) 
       <DialogContent className="max-w-2xl bg-card border-border max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">Create New Project</DialogTitle>
+          <DialogDescription className="text-sm">Enter the details for your new project.</DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">

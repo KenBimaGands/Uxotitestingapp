@@ -131,10 +131,21 @@ const requireAuth = async (c: any, next: any) => {
   console.log("Token length:", token.length);
   
   try {
-    console.log("Attempting to verify token with supabaseAnon client...");
+    console.log("Attempting to verify token with user-scoped client...");
     
-    // Use the anon client to validate the token (matches frontend context)
-    const { data, error } = await supabaseAnon.auth.getUser(token);
+    // Create a user-scoped client using the anon key + user JWT
+    const userSupabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      }
+    );
+    
+    // Verify the user's token (no argument needed - uses token from headers)
+    const { data, error } = await userSupabase.auth.getUser();
     
     if (error) {
       console.log("=== SERVER AUTH FAILED ===");
