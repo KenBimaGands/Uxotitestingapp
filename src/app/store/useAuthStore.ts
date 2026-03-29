@@ -14,13 +14,12 @@ interface AuthStore {
   user: User | null;
   accessToken: string | null;
   isAuthenticated: boolean;
+  isInitialized: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   signup: (email: string, password: string, name: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  setUser: (user: User, token: string) => void;
   clearAuth: () => void;
-  checkSession: () => Promise<void>;
-  getValidToken: () => Promise<string | null>;
+  initializeAuth: () => Promise<void>;
 }
 
 const API_BASE = `https://${projectId}.supabase.co/functions/v1/make-server-aba765bd`;
@@ -31,54 +30,25 @@ export const useAuthStore = create<AuthStore>()(
       user: null,
       accessToken: null,
       isAuthenticated: false,
+      isInitialized: false,
       
-      // Get a valid token, refreshing if necessary
-      getValidToken: async () => {
+      // Initialize auth on app load - check for existing session
+      initializeAuth: async () => {
         try {
-          const { data, error } = await supabase.auth.getSession();
-          
-          if (error || !data.session) {
-            console.error("Failed to get valid token:", error?.message);
-            set({ user: null, accessToken: null, isAuthenticated: false });
-            return null;
-          }
-          
-          // Update store with fresh token
-          if (data.session.access_token !== get().accessToken) {
-            console.log("Token was refreshed, updating store...");
-            set({
-              accessToken: data.session.access_token,
-              user: {
-                id: data.session.user.id,
-                email: data.session.user.email || "",
-                name: data.session.user.user_metadata?.name || "User",
-                role: "Evaluator"
-              },
-              isAuthenticated: true
-            });
-          }
-          
-          return data.session.access_token;
-        } catch (error) {
-          console.error("Error getting valid token:", error);
-          return null;
-        }
-      },
-      
-      checkSession: async () => {
-        try {
-          console.log("Auth store: Checking existing session...");
+          console.log("=== AUTH INIT: Checking for existing session ===");
           const { data, error } = await supabase.auth.getSession();
           
           if (error) {
-            console.error("Session check error:", error.message);
-            // Clear invalid session
-            set({ user: null, accessToken: null, isAuthenticated: false });
+            console.error("Auth init error:", error.message);
+            set({ user: null, accessToken: null, isAuthenticated: false, isInitialized: true });
             return;
           }
           
           if (data.session) {
-            console.log("Auth store: Valid session found, updating state...");
+            console.log("Auth init: Found existing session");
+            console.log("User:", data.session.user.email);
+            console.log("Token length:", data.session.access_token.length);
+            
             set({
               user: {
                 id: data.session.user.id,
@@ -87,23 +57,25 @@ export const useAuthStore = create<AuthStore>()(
                 role: "Evaluator"
               },
               accessToken: data.session.access_token,
-              isAuthenticated: true
+              isAuthenticated: true,
+              isInitialized: true
             });
           } else {
-            console.log("Auth store: No valid session found, clearing state...");
-            set({ user: null, accessToken: null, isAuthenticated: false });
+            console.log("Auth init: No existing session");
+            set({ user: null, accessToken: null, isAuthenticated: false, isInitialized: true });
           }
         } catch (error) {
-          console.error("Session check exception:", error);
-          set({ user: null, accessToken: null, isAuthenticated: false });
+          console.error("Auth init exception:", error);
+          set({ user: null, accessToken: null, isAuthenticated: false, isInitialized: true });
         }
       },
       
       login: async (email: string, password: string) => {
         try {
-          console.log("Auth store: Attempting client-side login...");
+          console.log("=== AUTH LOGIN: Starting ===");
+          console.log("Email:", email);
           
-          // Use Supabase client to sign in
+          // Sign in with Supabase
           const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password,
@@ -119,8 +91,11 @@ export const useAuthStore = create<AuthStore>()(
             return false;
           }
 
-          console.log("Auth store: Login successful!");
-          console.log("Auth store: User ID:", data.user.id);
+          console.log("=== AUTH LOGIN: Success ===");
+          console.log("User ID:", data.user.id);
+          console.log("User email:", data.user.email);
+          console.log("Token length:", data.session.access_token.length);
+          console.log("Token (first 50):", data.session.access_token.substring(0, 50));
           
           set({ 
             user: {
@@ -135,17 +110,14 @@ export const useAuthStore = create<AuthStore>()(
           
           return true;
         } catch (error) {
-          console.error("Login error:", error);
+          console.error("Login exception:", error);
           return false;
         }
       },
 
       signup: async (email: string, password: string, name: string) => {
         try {
-          console.log("Auth store: Starting signup process...");
-          
-          // Clear any existing auth state first
-          set({ user: null, accessToken: null, isAuthenticated: false });
+          console.log("=== AUTH SIGNUP: Starting ===");
           
           // Call server endpoint to create user with admin privileges
           const response = await fetch(`${API_BASE}/signup`, {
@@ -157,31 +129,31 @@ export const useAuthStore = create<AuthStore>()(
             body: JSON.stringify({ email, password, name }),
           });
 
-          console.log("Auth store: Signup response status:", response.status);
+          console.log("Signup response status:", response.status);
           
           if (!response.ok) {
             const data = await response.json().catch(() => ({}));
             const errorMsg = data.error || `Signup failed with status ${response.status}`;
-            console.error("Auth store: Signup failed:", errorMsg);
+            console.error("Signup failed:", errorMsg);
             return { success: false, error: errorMsg };
           }
 
           const data = await response.json();
-          console.log("Auth store: User created successfully:", data.user);
+          console.log("User created successfully");
 
-          // Now sign in with Supabase client
-          console.log("Auth store: Attempting client-side login after signup...");
+          // Now sign in
+          console.log("Auto-login after signup...");
           const loginSuccess = await get().login(email, password);
           
           if (loginSuccess) {
-            console.log("Auth store: Signup and login complete!");
+            console.log("=== AUTH SIGNUP: Complete ===");
             return { success: true };
           } else {
-            console.error("Auth store: Auto-login failed after signup");
+            console.error("Auto-login failed after signup");
             return { success: false, error: "Account created but login failed. Please try logging in manually." };
           }
         } catch (error) {
-          console.error("Auth store: Signup exception:", error);
+          console.error("Signup exception:", error);
           if (error instanceof TypeError && error.message.includes("fetch")) {
             return { success: false, error: "Network error: Cannot reach server. Please check your connection." };
           }
@@ -190,19 +162,17 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: () => {
-        console.log("Auth store: Logging out...");
-        // First clear local state
+        console.log("=== AUTH LOGOUT: User clicked logout ===");
+        
+        // Clear local state immediately
         set({ user: null, accessToken: null, isAuthenticated: false });
-        // Then sign out from Supabase (this will trigger SIGNED_OUT event, but state is already cleared)
+        
+        // Sign out from Supabase
         supabase.auth.signOut().catch(err => console.error("Signout error:", err));
       },
 
-      setUser: (user: User, token: string) => {
-        set({ user, accessToken: token, isAuthenticated: true });
-      },
-
       clearAuth: () => {
-        console.log("Auth store: Clearing auth state...");
+        console.log("=== AUTH CLEAR: Clearing state only ===");
         set({ user: null, accessToken: null, isAuthenticated: false });
       },
     }),

@@ -52,10 +52,17 @@ export function NewProjectDialog({ open, onOpenChange }: NewProjectDialogProps) 
     addProject(formData);
     
     // Sync with backend using fresh token
-    const token = await getValidToken();
-    if (token) {
-      await syncProjects(token);
-      toast.success("Project created and synced!");
+    try {
+      const token = await getValidToken();
+      if (token) {
+        await syncProjects(token);
+        toast.success("Project created and synced!");
+      } else {
+        toast.warning("Project created locally, but sync failed. You may need to log in again.");
+      }
+    } catch (error) {
+      console.error("Failed to sync new project:", error);
+      toast.warning("Project created locally, but sync failed. Please try again later.");
     }
     
     // Reset form

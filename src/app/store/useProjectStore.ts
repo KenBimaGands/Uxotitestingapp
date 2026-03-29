@@ -78,18 +78,23 @@ export const useProjectStore = create<ProjectStore>()(
       loadProjects: async (accessToken: string) => {
         set({ isLoading: true });
         try {
-          console.log("Loading projects from server...");
+          console.log("=== PROJECT STORE: Loading projects ===");
+          console.log("Token (first 50):", accessToken.substring(0, 50));
+          console.log("API endpoint:", `${API_BASE}/projects`);
+          
           const response = await fetch(`${API_BASE}/projects`, {
             headers: {
               "Authorization": `Bearer ${accessToken}`,
             },
           });
 
-          console.log("Load projects response status:", response.status);
+          console.log("=== PROJECT STORE: Response received ===");
+          console.log("Status:", response.status);
+          console.log("Status text:", response.statusText);
 
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            console.error("Failed to load projects:", errorData);
+            console.error("=== PROJECT STORE: Load failed ===", errorData);
             
             // Check if it's an auth error
             if (response.status === 401) {
@@ -101,10 +106,11 @@ export const useProjectStore = create<ProjectStore>()(
           }
 
           const data = await response.json();
-          console.log("Loaded projects:", data.projects);
+          console.log("=== PROJECT STORE: Projects loaded successfully ===");
+          console.log("Project count:", data.projects?.length || 0);
           set({ projects: data.projects || [], isLoading: false });
         } catch (error) {
-          console.error("Error loading projects:", error);
+          console.error("=== PROJECT STORE: Load error ===", error);
           set({ projects: [], isLoading: false });
           
           // Re-throw auth errors so Dashboard can handle them
@@ -121,6 +127,8 @@ export const useProjectStore = create<ProjectStore>()(
         try {
           const { projects } = get();
           
+          console.log("Syncing projects to server...");
+          
           const response = await fetch(`${API_BASE}/projects`, {
             method: "POST",
             headers: {
@@ -130,14 +138,34 @@ export const useProjectStore = create<ProjectStore>()(
             body: JSON.stringify({ projects }),
           });
 
+          console.log("Sync projects response status:", response.status);
+
           if (!response.ok) {
-            throw new Error("Failed to sync projects");
+            const errorData = await response.json().catch(() => ({}));
+            console.error("Failed to sync projects:", errorData);
+            
+            // Check if it's an auth error
+            if (response.status === 401) {
+              set({ isSyncing: false });
+              throw new Error("Unauthorized - Session expired");
+            }
+            
+            throw new Error(errorData.error || "Failed to sync projects");
           }
 
+          console.log("Projects synced successfully");
           set({ isSyncing: false });
         } catch (error) {
           console.error("Error syncing projects:", error);
           set({ isSyncing: false });
+          
+          // Re-throw auth errors so callers can handle them
+          if (error instanceof Error && (error.message.includes("401") || error.message.includes("Unauthorized") || error.message.includes("Session expired"))) {
+            throw error;
+          }
+          
+          // For other errors, also throw so callers can handle
+          throw error;
         }
       },
 

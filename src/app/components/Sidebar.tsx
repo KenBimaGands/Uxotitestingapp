@@ -19,6 +19,7 @@ export function Sidebar() {
   ];
 
   const handleLogout = () => {
+    console.log("=== SIDEBAR: User clicked logout button ===");
     logout();
     toast.success("Logged out successfully");
     navigate("/login");

@@ -56,7 +56,7 @@ export function ProjectTypeCharts() {
       <Card className="p-6 bg-card border-border">
         <h3 className="mb-4">Projects by Evaluation Method</h3>
         <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={methodData}>
+          <BarChart data={methodData} key="method-chart">
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
             <XAxis 
               dataKey="name" 
@@ -77,7 +77,6 @@ export function ProjectTypeCharts() {
               }}
             />
             <Bar 
-              key="evaluation-method-bar"
               dataKey="count" 
               fill="var(--chart-2)" 
               fillOpacity={0.6}
@@ -92,7 +91,7 @@ export function ProjectTypeCharts() {
         <h3 className="mb-4">Projects by Platform</h3>
         {filteredPlatformData.length > 0 ? (
           <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
+            <PieChart key="platform-chart">
               <Pie
                 data={filteredPlatformData}
                 cx="50%"

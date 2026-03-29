@@ -44,14 +44,20 @@ export function Evaluation() {
     });
 
     // Sync with backend using fresh token
-    const token = await getValidToken();
-    if (token) {
-      await syncProjects(token);
+    try {
+      const token = await getValidToken();
+      if (token) {
+        await syncProjects(token);
+        toast.success("Progress saved successfully!", {
+          description: "Your evaluation data has been saved.",
+        });
+      } else {
+        toast.warning("Progress saved locally, but sync failed. You may need to log in again.");
+      }
+    } catch (error) {
+      console.error("Failed to sync evaluation data:", error);
+      toast.warning("Progress saved locally, but sync failed. Please try again later.");
     }
-
-    toast.success("Progress saved successfully!", {
-      description: "Your evaluation data has been saved.",
-    });
   };
 
   if (!project) {

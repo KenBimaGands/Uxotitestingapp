@@ -5,11 +5,23 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import * as kv from "./kv_store.tsx";
 const app = new Hono();
 
-// Initialize Supabase client
-const supabase = createClient(
+// Initialize Supabase clients
+// Service role client for admin operations (signup)
+const supabaseAdmin = createClient(
   Deno.env.get('SUPABASE_URL') ?? '',
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
 );
+
+// Anon client for token validation (matches frontend context)
+const supabaseAnon = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+);
+
+console.log("=== SERVER INITIALIZATION ===");
+console.log("Supabase URL:", Deno.env.get('SUPABASE_URL')?.substring(0, 30) + "...");
+console.log("Service Role Key present:", !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
+console.log("Anon Key present:", !!Deno.env.get('SUPABASE_ANON_KEY'));
 
 // Enable logger
 app.use('*', logger(console.log));
@@ -41,7 +53,7 @@ app.post("/make-server-aba765bd/signup", async (c) => {
     }
 
     // Create user with Supabase Auth
-    const { data, error } = await supabase.auth.admin.createUser({
+    const { data, error } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
       user_metadata: { name },
@@ -76,7 +88,7 @@ app.post("/make-server-aba765bd/login", async (c) => {
       return c.json({ error: "Email and password are required" }, 400);
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabaseAdmin.auth.signInWithPassword({
       email,
       password,
     });
@@ -104,24 +116,54 @@ app.post("/make-server-aba765bd/login", async (c) => {
 const requireAuth = async (c: any, next: any) => {
   const authHeader = c.req.header("Authorization");
   
+  console.log("=== SERVER AUTH MIDDLEWARE ===#");
+  console.log("Path:", c.req.path);
+  console.log("Method:", c.req.method);
+  console.log("Auth header present:", !!authHeader);
+  
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return c.json({ error: "Unauthorized - No token provided" }, 401);
+    console.log("Auth error: No token provided or wrong format");
+    return c.json({ code: 401, message: "Unauthorized - No token provided" }, 401);
   }
 
   const token = authHeader.split(" ")[1];
+  console.log("Token received (first 50 chars):", token.substring(0, 50));
+  console.log("Token length:", token.length);
   
-  const { data, error } = await supabase.auth.getUser(token);
-  
-  if (error || !data.user) {
-    console.log(`Auth verification error: ${error?.message || "No user found"}`);
-    return c.json({ error: "Unauthorized - Invalid token" }, 401);
-  }
+  try {
+    console.log("Attempting to verify token with supabaseAnon client...");
+    
+    // Use the anon client to validate the token (matches frontend context)
+    const { data, error } = await supabaseAnon.auth.getUser(token);
+    
+    if (error) {
+      console.log("=== SERVER AUTH FAILED ===");
+      console.log("Error message:", error.message);
+      console.log("Error name:", error.name);
+      console.log("Error status:", error.status);
+      return c.json({ code: 401, message: `Invalid JWT: ${error.message}` }, 401);
+    }
+    
+    if (!data.user) {
+      console.log("Auth error: No user found for token");
+      return c.json({ code: 401, message: "Unauthorized - User not found" }, 401);
+    }
 
-  // Store user info in context
-  c.set("userId", data.user.id);
-  c.set("user", data.user);
-  
-  await next();
+    // Store user info in context
+    c.set("userId", data.user.id);
+    c.set("user", data.user);
+    
+    console.log("=== SERVER AUTH SUCCESS ===");
+    console.log("User:", data.user.email);
+    console.log("User ID:", data.user.id);
+    
+    await next();
+  } catch (error) {
+    console.log("=== SERVER AUTH EXCEPTION ===");
+    console.log("Exception:", error);
+    console.log("Exception type:", error.constructor.name);
+    return c.json({ code: 401, message: "Unauthorized - Authentication failed" }, 401);
+  }
 };
 
 // Get user's projects

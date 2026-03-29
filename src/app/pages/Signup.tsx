@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router";
 import { useAuthStore } from "../store/useAuthStore";
 import { Card } from "../components/ui/card";
@@ -6,13 +6,12 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { BarChart3, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import { projectId, publicAnonKey } from "/utils/supabase/info";
-
-const API_BASE = `https://${projectId}.supabase.co/functions/v1/make-server-aba765bd`;
 
 export function Signup() {
   const navigate = useNavigate();
   const signup = useAuthStore((state) => state.signup);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isInitialized = useAuthStore((state) => state.isInitialized);
   
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -20,6 +19,29 @@ export function Signup() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (isInitialized && isAuthenticated) {
+      console.log("Signup page: Already authenticated, redirecting to dashboard");
+      navigate("/", { replace: true });
+    }
+  }, [isInitialized, isAuthenticated, navigate]);
+
+  // Show loading state while checking auth status
+  if (!isInitialized) {
+    return (
+      <div 
+        className="min-h-screen flex items-center justify-center" 
+        style={{ backgroundColor: "var(--background)" }}
+      >
+        <div className="text-center space-y-3">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-muted-foreground text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
